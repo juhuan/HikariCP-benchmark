@@ -190,7 +190,11 @@ public class BenchBase
         druid.setUsername("brettw");
         druid.setPassword("");
         druid.setValidationQuery("SELECT 1");
-        druid.setTestOnBorrow(true);
+        druid.setKeepAlive(true);
+        druid.setTestOnBorrow(false);
+        druid.setTestOnReturn(false);
+        druid.setTestWhileIdle(true);
+        druid.setTimeBetweenEvictionRunsMillis(30000);
         druid.setDefaultAutoCommit(false);
         druid.setMaxWait(8000);
         druid.setUseUnfairLock(true);
