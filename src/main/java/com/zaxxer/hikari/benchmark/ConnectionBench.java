@@ -23,34 +23,40 @@ import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.CompilerControl;
+import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-//@State(Scope.Benchmark)
-//@Warmup(iterations=3, batchSize=1_000_000)
-//@Measurement(iterations=8, batchSize=1_000_000)
-//@BenchmarkMode(Mode.SingleShotTime)
-//@OutputTimeUnit(TimeUnit.NANOSECONDS)
-
-@Warmup(iterations=3)
-@Measurement(iterations=8)
+@Warmup(iterations = 1)
+@Measurement(iterations = 5)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Fork(1)
+@Threads(1)
+public class ConnectionBench extends BenchBase {
 
-//@Warmup(iterations=3)
-//@Measurement(iterations=8)
-//@BenchmarkMode(Mode.SampleTime)
-//@OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class ConnectionBench extends BenchBase
-{
     @Benchmark
     @CompilerControl(CompilerControl.Mode.INLINE)
-    public static Connection cycleCnnection() throws SQLException
-    {
+    public static Connection cycleConnection() throws SQLException {
         Connection connection = DS.getConnection();
         connection.close();
         return connection;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Options opts = new OptionsBuilder()
+                .include(ConnectionBench.class.getSimpleName())
+                .resultFormat(ResultFormatType.JSON)
+                .param("pool", "hikari", "tomcat", "druid")
+                .build();
+        new Runner(opts).run();
     }
 }

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.CompilerControl;
+import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
@@ -32,8 +33,13 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 //@State(Scope.Benchmark)
 //@Warmup(iterations=3, batchSize=1_000_000)
@@ -42,16 +48,16 @@ import org.openjdk.jmh.infra.Blackhole;
 //@OutputTimeUnit(TimeUnit.NANOSECONDS)
 
 @State(Scope.Benchmark)
-@Warmup(iterations=3)
-@Measurement(iterations=8)
+@Warmup(iterations = 1)
+@Measurement(iterations = 5)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class StatementBench extends BenchBase
-{
+@Fork(1)
+@Threads(1)
+public class StatementBench extends BenchBase {
     @Benchmark
     @CompilerControl(CompilerControl.Mode.INLINE)
-    public Statement cycleStatement(Blackhole bh, ConnectionState state) throws SQLException
-    {
+    public Statement cycleStatement(Blackhole bh, ConnectionState state) throws SQLException {
         Statement statement = state.connection.createStatement();
         bh.consume(statement.execute("INSERT INTO test (column) VALUES (?)"));
         statement.close();
@@ -59,20 +65,26 @@ public class StatementBench extends BenchBase
     }
 
     @State(Scope.Thread)
-    public static class ConnectionState
-    {
+    public static class ConnectionState {
         Connection connection;
 
         @Setup(Level.Iteration)
-        public void setup() throws SQLException
-        {
+        public void setup() throws SQLException {
             connection = DS.getConnection();
         }
 
         @TearDown(Level.Iteration)
-        public void teardown() throws SQLException
-        {
+        public void teardown() throws SQLException {
             connection.close();
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Options opts = new OptionsBuilder()
+                .include(ConnectionBench.class.getSimpleName())
+                .resultFormat(ResultFormatType.JSON)
+                .param("pool", "hikari", "tomcat", "druid")
+                .build();
+        new Runner(opts).run();
     }
 }
