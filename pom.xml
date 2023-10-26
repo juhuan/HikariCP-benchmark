@@ -83,7 +83,7 @@
 		<dependency>
 			<groupId>org.vibur</groupId>
 			<artifactId>vibur-dbcp</artifactId>
-			<version>22.2</version>
+			<version>25.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j</artifactId>
